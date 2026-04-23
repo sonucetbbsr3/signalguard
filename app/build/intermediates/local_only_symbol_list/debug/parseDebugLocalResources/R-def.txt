@@ -33,8 +33,8 @@ id signalStatusOverlay
 id switchAllowDimming
 id switchKeepScreenOn
 id toolbar
+id verticalZoomSeek
 id watchingStatusText
-id zoomDialView
 id zoomLabel
 layout activity_main
 mipmap ic_launcher

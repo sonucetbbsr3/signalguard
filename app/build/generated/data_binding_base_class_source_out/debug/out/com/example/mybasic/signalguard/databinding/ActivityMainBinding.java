@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -18,7 +19,6 @@ import androidx.viewbinding.ViewBindings;
 import com.example.mybasic.signalguard.DPadView;
 import com.example.mybasic.signalguard.OverlayView;
 import com.example.mybasic.signalguard.R;
-import com.example.mybasic.signalguard.ZoomDialView;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -88,10 +88,10 @@ public final class ActivityMainBinding implements ViewBinding {
   public final LinearLayout toolbar;
 
   @NonNull
-  public final TextView watchingStatusText;
+  public final SeekBar verticalZoomSeek;
 
   @NonNull
-  public final ZoomDialView zoomDialView;
+  public final TextView watchingStatusText;
 
   @NonNull
   public final TextView zoomLabel;
@@ -106,7 +106,7 @@ public final class ActivityMainBinding implements ViewBinding {
       @NonNull TextView signalDescText, @NonNull TextView signalNameText,
       @NonNull LinearLayout signalStatusOverlay, @NonNull Switch switchAllowDimming,
       @NonNull Switch switchKeepScreenOn, @NonNull LinearLayout toolbar,
-      @NonNull TextView watchingStatusText, @NonNull ZoomDialView zoomDialView,
+      @NonNull SeekBar verticalZoomSeek, @NonNull TextView watchingStatusText,
       @NonNull TextView zoomLabel) {
     this.rootView = rootView;
     this.bottomControlPanel = bottomControlPanel;
@@ -129,8 +129,8 @@ public final class ActivityMainBinding implements ViewBinding {
     this.switchAllowDimming = switchAllowDimming;
     this.switchKeepScreenOn = switchKeepScreenOn;
     this.toolbar = toolbar;
+    this.verticalZoomSeek = verticalZoomSeek;
     this.watchingStatusText = watchingStatusText;
-    this.zoomDialView = zoomDialView;
     this.zoomLabel = zoomLabel;
   }
 
@@ -281,15 +281,15 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.watchingStatusText;
-      TextView watchingStatusText = ViewBindings.findChildViewById(rootView, id);
-      if (watchingStatusText == null) {
+      id = R.id.verticalZoomSeek;
+      SeekBar verticalZoomSeek = ViewBindings.findChildViewById(rootView, id);
+      if (verticalZoomSeek == null) {
         break missingId;
       }
 
-      id = R.id.zoomDialView;
-      ZoomDialView zoomDialView = ViewBindings.findChildViewById(rootView, id);
-      if (zoomDialView == null) {
+      id = R.id.watchingStatusText;
+      TextView watchingStatusText = ViewBindings.findChildViewById(rootView, id);
+      if (watchingStatusText == null) {
         break missingId;
       }
 
@@ -303,7 +303,7 @@ public final class ActivityMainBinding implements ViewBinding {
           btnStartStop, cameraPreview, dpadView, glassOrb, overlayView, rgbValueText,
           sampledColorSwatch, sampledColorText, screenOnChip, settingsPanel, signalAspectText,
           signalColorBox, signalDescText, signalNameText, signalStatusOverlay, switchAllowDimming,
-          switchKeepScreenOn, toolbar, watchingStatusText, zoomDialView, zoomLabel);
+          switchKeepScreenOn, toolbar, verticalZoomSeek, watchingStatusText, zoomLabel);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

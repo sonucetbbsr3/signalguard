@@ -4185,6 +4185,7 @@ id unlabeled
 id up
 id useLogo
 id vertical
+id verticalZoomSeek
 id vertical_only
 id view_offset_helper
 id view_transition
@@ -4205,7 +4206,6 @@ id wrap_content
 id wrap_content_constrained
 id x_left
 id x_right
-id zoomDialView
 id zoomLabel
 integer abc_config_activityDefaultDur
 integer abc_config_activityShortDur

@@ -26,6 +26,8 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
+import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,35 +44,42 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    // ── Signal Constants ────────────────────────────────────────────────────────
     private static final int SIG_UNKNOWN = 0;
     private static final int SIG_RED     = 1;
-    private static final int SIG_GREEN   = 2;
-    private static final int SIG_YELLOW  = 3;
+    private static final int SIG_GREEN   = 2;    private static final int SIG_YELLOW  = 3;
 
-    private ActivityMainBinding binding;    private CameraDevice cameraDevice;
+    // ── Camera & Binding ────────────────────────────────────────────────────
+    private ActivityMainBinding binding;
+    private CameraDevice cameraDevice;
     private CameraCaptureSession captureSession;
     private CaptureRequest.Builder previewRequestBuilder;
     private HandlerThread backgroundThread;
     private Handler backgroundHandler;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
+    // ── State ──────────────────────────────────────────────────────────────
     private boolean isWatching = false;
     private boolean alarmActive = false;
     private int lastLockedSignal = SIG_UNKNOWN;
     private boolean settingsVisible = false;
 
+    // ── Screen Settings ─────────────────────────────────────────────────────
     private boolean keepScreenOn = true;
     private boolean allowDimming = false;
 
+    // ── Crosshair / Lock Point ──────────────────────────────────────────────
     private float lockNX = 0.5f;
     private float lockNY = 0.5f;
     private static final float NUDGE_STEP = 0.005f;
 
+    // ── Zoom ────────────────────────────────────────────────────────────────
     private float currentZoom = 1.0f;
     private float maxZoomCamera = 8.0f;
     private Rect sensorArraySize = null;
     private boolean useFrontCamera = false;
 
+    // ── Alarm & Sampling ────────────────────────────────────────────────────
     private ToneGenerator toneGenerator;
     private final Handler alarmHandler = new Handler(Looper.getMainLooper());
     private Runnable alarmRunnable;
@@ -81,28 +90,50 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int PERM_CODE = 101;
 
+    // ── UI Views ────────────────────────────────────────────────────────────
     private View glassOrbView;
+    private SeekBar verticalZoomSeek;
     private TextView btnSettingsCorner;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle savedInstanceState) {        super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         applyScreenFlags();
 
+        // Find Views
         glassOrbView = findViewById(R.id.glassOrb);
+        verticalZoomSeek = findViewById(R.id.verticalZoomSeek);
         btnSettingsCorner = findViewById(R.id.btnSettingsCorner);
 
+        // ── Zoom SeekBar Logic ──
+        if (verticalZoomSeek != null) {
+            verticalZoomSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    // Map progress (0-100) to zoom (1.0x - maxZoomCamera)
+                    float zoom = 1.0f + (progress / 100.0f) * (maxZoomCamera - 1.0f);
+                    currentZoom = zoom;
+                    applyZoomAtLockPoint(zoom);
+                    binding.zoomLabel.setText(String.format("%.1fx", zoom));
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+
+        // ── Overlay: Tap to Lock ──
         binding.overlayView.setOnTargetSelectedListener(new OverlayView.OnTargetSelectedListener() {
-            @Override            public void onTargetSelected(float nx, float ny) {
+            @Override
+            public void onTargetSelected(float nx, float ny) {
                 lockNX = nx;
                 lockNY = ny;
                 binding.watchingStatusText.setText("Lock set — watching this point");
             }
         });
 
+        // ── D-Pad: Nudge Crosshair ──
         binding.dpadView.setOnDirectionListener(new DPadView.OnDirectionListener() {
             @Override
             public void onDirection(int dir) {
@@ -114,22 +145,13 @@ public class MainActivity extends AppCompatActivity {
                     case 4: lockNX = 0.5f; lockNY = 0.5f; break;
                 }
                 binding.overlayView.setLockPoint(lockNX, lockNY);
-                if (isWatching) {
-                    binding.watchingStatusText.setText(
+                if (isWatching) {                    binding.watchingStatusText.setText(
                             String.format("Lock: %.0f%% %.0f%%", lockNX * 100, lockNY * 100));
                 }
             }
         });
 
-        binding.zoomDialView.setOnZoomChangedListener(new ZoomDialView.OnZoomChangedListener() {
-            @Override
-            public void onZoomChanged(float zoom) {
-                currentZoom = zoom;
-                applyZoomAtLockPoint(zoom);
-                binding.zoomLabel.setText(String.format("%.1fx", zoom));
-            }
-        });
-
+        // ── Settings Button ──
         if (btnSettingsCorner != null) {
             btnSettingsCorner.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -139,19 +161,22 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        // ── Screen Keep-On Toggle ──
         binding.switchKeepScreenOn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 keepScreenOn = isChecked;
                 binding.switchAllowDimming.setEnabled(isChecked);
                 if (!isChecked) {
-                    allowDimming = false;                    binding.switchAllowDimming.setChecked(false);
+                    allowDimming = false;
+                    binding.switchAllowDimming.setChecked(false);
                 }
                 applyScreenFlags();
                 updateScreenOnChip();
             }
         });
 
+        // ── Allow Dimming Toggle ──
         binding.switchAllowDimming.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -160,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Init States
         binding.switchKeepScreenOn.setChecked(keepScreenOn);
         binding.switchAllowDimming.setChecked(allowDimming);
         binding.switchAllowDimming.setEnabled(keepScreenOn);
@@ -168,8 +194,7 @@ public class MainActivity extends AppCompatActivity {
         requestPermsIfNeeded();
     }
 
-    @Override
-    protected void onResume() {
+    @Override    protected void onResume() {
         super.onResume();
         applyScreenFlags();
         startBackgroundThread();
@@ -192,9 +217,14 @@ public class MainActivity extends AppCompatActivity {
         binding = null;
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // SCREEN FLAGS
+    // ═══════════════════════════════════════════════════════════════════════
+
     private void applyScreenFlags() {
         if (binding == null) return;
-        if (keepScreenOn) {            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (keepScreenOn) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
@@ -213,10 +243,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void toggleSettings() {
         settingsVisible = !settingsVisible;
-        binding.settingsPanel.setVisibility(settingsVisible ? View.VISIBLE : View.GONE);
-        int color = settingsVisible ? 0xFF5599FF : 0xFF8888AA;
+        binding.settingsPanel.setVisibility(settingsVisible ? View.VISIBLE : View.GONE);        int color = settingsVisible ? 0xFF5599FF : 0xFF8888AA;
         if (btnSettingsCorner != null) btnSettingsCorner.setTextColor(color);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // PERMISSIONS
+    // ═══════════════════════════════════════════════════════════════════════
 
     private void requestPermsIfNeeded() {
         List<String> need = new ArrayList<>();
@@ -244,6 +277,11 @@ public class MainActivity extends AppCompatActivity {
             setupCameraPreview();
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // CAMERA SETUP
+    // ═══════════════════════════════════════════════════════════════════════
+
     private void setupCameraPreview() {
         binding.cameraPreview.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override public void onSurfaceTextureAvailable(@NonNull SurfaceTexture s, int w, int h) { openCamera(); }
@@ -254,8 +292,7 @@ public class MainActivity extends AppCompatActivity {
         if (binding.cameraPreview.isAvailable()) openCamera();
     }
 
-    private void openCamera() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) return;
+    private void openCamera() {        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) return;
         CameraManager mgr = (CameraManager) getSystemService(CAMERA_SERVICE);
         try {
             int wantedFacing = useFrontCamera ? CameraCharacteristics.LENS_FACING_FRONT : CameraCharacteristics.LENS_FACING_BACK;
@@ -273,7 +310,9 @@ public class MainActivity extends AppCompatActivity {
             Float maxZ = chars.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
             if (maxZ != null) {
                 maxZoomCamera = maxZ;
-                mainHandler.post(() -> binding.zoomDialView.setMaxZoom(maxZoomCamera));
+                mainHandler.post(() -> {
+                    if (verticalZoomSeek != null) verticalZoomSeek.setMax(100);
+                });
             }
             mgr.openCamera(id, cameraStateCallback, backgroundHandler);
         } catch (CameraAccessException e) {
@@ -284,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
     private void flipCamera() {
         useFrontCamera = !useFrontCamera;
         currentZoom = 1.0f;
-        binding.zoomDialView.resetZoom();
+        if (verticalZoomSeek != null) verticalZoomSeek.setProgress(0);
         binding.zoomLabel.setText("1.0x");
         closeCamera();
         openCamera();
@@ -292,7 +331,8 @@ public class MainActivity extends AppCompatActivity {
 
     private final CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
         @Override public void onOpened(@NonNull CameraDevice cam) {
-            cameraDevice = cam;            createPreviewSession();
+            cameraDevice = cam;
+            createPreviewSession();
         }
         @Override public void onDisconnected(@NonNull CameraDevice cam) {
             cam.close(); cameraDevice = null;
@@ -301,7 +341,6 @@ public class MainActivity extends AppCompatActivity {
             cam.close(); cameraDevice = null;
         }
     };
-
     private void createPreviewSession() {
         try {
             SurfaceTexture tex = binding.cameraPreview.getSurfaceTexture();
@@ -330,6 +369,10 @@ public class MainActivity extends AppCompatActivity {
         } catch (CameraAccessException e) { e.printStackTrace(); }
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // BACKGROUND THREAD
+    // ═══════════════════════════════════════════════════════════════════════
+
     private void startBackgroundThread() {
         backgroundThread = new HandlerThread("CamBG");
         backgroundThread.start();
@@ -341,12 +384,16 @@ public class MainActivity extends AppCompatActivity {
         backgroundThread.quitSafely();
         try { backgroundThread.join(); } catch (InterruptedException ignored) {}
         backgroundThread = null;
-        backgroundHandler = null;    }
+        backgroundHandler = null;
+    }
 
     private void closeCamera() {
         if (captureSession != null) { captureSession.close(); captureSession = null; }
         if (cameraDevice != null) { cameraDevice.close(); cameraDevice = null; }
     }
+    // ═══════════════════════════════════════════════════════════════════════
+    // ZOOM AT LOCK POINT
+    // ═══════════════════════════════════════════════════════════════════════
 
     private void applyZoomAtLockPoint(float zoom) {
         if (captureSession == null || previewRequestBuilder == null || sensorArraySize == null) return;
@@ -355,15 +402,24 @@ public class MainActivity extends AppCompatActivity {
         int sH = sensorArraySize.height();
         int cropW = Math.round(sW / zoom);
         int cropH = Math.round(sH / zoom);
+
+        // Center crop on the lock point (crosshair)
         int cropX = Math.round((sW - cropW) * lockNX);
         int cropY = Math.round((sH - cropH) * lockNY);
+
+        // Ensure crop stays within bounds
         cropX = Math.max(0, Math.min(cropX, sW - cropW));
         cropY = Math.max(0, Math.min(cropY, sH - cropH));
+
         previewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, new Rect(cropX, cropY, cropX + cropW, cropY + cropH));
         try {
             captureSession.setRepeatingRequest(previewRequestBuilder.build(), null, backgroundHandler);
         } catch (CameraAccessException e) { e.printStackTrace(); }
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SAMPLING LOOP
+    // ═══════════════════════════════════════════════════════════════════════
 
     private void startSamplingLoop() {
         samplingHandler.removeCallbacks(samplingRunnable);
@@ -383,14 +439,14 @@ public class MainActivity extends AppCompatActivity {
     private void sampleFrame() {
         if (binding == null || binding.cameraPreview == null) return;
         Bitmap bmp = binding.cameraPreview.getBitmap();
-        if (bmp == null) return;
-        
+        if (bmp == null) return;        
         int width = bmp.getWidth();
         int height = bmp.getHeight();
         int x = Math.max(0, Math.min(width - 1, (int)(lockNX * width)));
         int y = Math.max(0, Math.min(height - 1, (int)(lockNY * height)));
 
-        int pixel = bmp.getPixel(x, y);        int r = Color.red(pixel);
+        int pixel = bmp.getPixel(x, y);
+        int r = Color.red(pixel);
         int g = Color.green(pixel);
         int b = Color.blue(pixel);
         int signal = classifySignal(r, g, b);
@@ -432,14 +488,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private int classifySignal(int r, int g, int b) {
-        if (r > 180 && g < 100 && b < 100) return SIG_RED;
-        if (g > 150 && r < 120 && b < 120) return SIG_GREEN;
+        if (r > 180 && g < 100 && b < 100) return SIG_RED;        if (g > 150 && r < 120 && b < 120) return SIG_GREEN;
         if (r > 180 && g > 150 && b < 100) return SIG_YELLOW;
         return SIG_UNKNOWN;
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // BUTTONS & WATCHING
+    // ═══════════════════════════════════════════════════════════════════════
+
     private void setupButtons() {
-        binding.btnStartStop.setOnClickListener(new View.OnClickListener() {            @Override
+        binding.btnStartStop.setOnClickListener(new View.OnClickListener() {
+            @Override
             public void onClick(View v) {
                 if (isWatching) stopWatching();
                 else startWatching();
@@ -465,6 +525,10 @@ public class MainActivity extends AppCompatActivity {
         stopAlarm();
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // ALARM
+    // ═══════════════════════════════════════════════════════════════════════
+
     private void triggerAlarm(int signal) {
         if (alarmActive) return;
         alarmActive = true;
@@ -473,8 +537,7 @@ public class MainActivity extends AppCompatActivity {
             case SIG_RED:    signalText = "RED"; break;
             case SIG_GREEN:  signalText = "GREEN"; break;
             case SIG_YELLOW: signalText = "YELLOW"; break;
-            default:         signalText = "UNKNOWN"; break;
-        }
+            default:         signalText = "UNKNOWN"; break;        }
         binding.watchingStatusText.setText("⚠ ALARM: " + signalText + " SIGNAL DETECTED!");
         
         if (toneGenerator == null) {
@@ -488,7 +551,8 @@ public class MainActivity extends AppCompatActivity {
                 if (v != null) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                    } else {                        v.vibrate(500);
+                    } else {
+                        v.vibrate(500);
                     }
                 }
             }
