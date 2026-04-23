@@ -1,43 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  SignalGuard UI v2
-  ═══════════════════════════════════════════════
-  TOP-LEFT overlay (floating on camera, ref image 2):
-    [ colourSwatch ] R:222 — STOP
-                     R:222 G:32 B:33
-
-  BOTTOM panel (ref image 1):
-    ┌──────────────────────────────────────────────┐
-    │  [  Large circular D-pad  ]  START WATCHING  │
-    │                              ─────────────── │
-    │                              ZOOM ─────── 1.0│
-    │                              1.0x  [big text] │
-    │                              [FLIP ↩] [🔕SIL] │
-    └──────────────────────────────────────────────┘
--->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#0A0A0F">
 
-    <!-- ══ Toolbar (slim) ══ -->
+    <!-- Camera Preview -->
+    <TextureView
+        android:id="@+id/cameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <com.example.mybasic.signalguard.OverlayView
+        android:id="@+id/overlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <!-- Top Toolbar -->
     <LinearLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="38dp"
+        android:layout_height="40dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="12dp"
         android:paddingEnd="8dp"
-        android:background="#10101A">
+        android:background="#CC10101A">
 
         <View
-            android:layout_width="7dp"
-            android:layout_height="7dp"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
             android:background="@drawable/dot_green"
-            android:layout_marginEnd="7dp"/>
+            android:layout_marginEnd="8dp"/>
 
         <TextView
             android:layout_width="0dp"
@@ -45,9 +38,8 @@
             android:layout_weight="1"
             android:text="SignalGuard"
             android:textColor="#D0D0FF"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.07"/>
+            android:textSize="14sp"
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/screenOnChip"
@@ -55,388 +47,262 @@
             android:layout_height="20dp"
             android:text="SCREEN ON"
             android:textColor="#00E676"
-            android:textSize="8sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"
+            android:textSize="9sp"            android:textStyle="bold"
             android:background="@drawable/chip_green"
             android:paddingStart="6dp"
             android:paddingEnd="6dp"
             android:gravity="center"
             android:layout_marginEnd="6dp"
             android:visibility="gone"/>
-
-        <TextView
-            android:id="@+id/btnSettings"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:text="⚙"
-            android:textColor="#7777AA"
-            android:textSize="18sp"
-            android:gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"/>
     </LinearLayout>
 
-    <!-- ══ Camera frame — takes all remaining height ══ -->
-    <FrameLayout
-        android:id="@+id/previewFrame"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+    <!-- Top-Left Signal Status -->
+    <LinearLayout
+        android:id="@+id/signalStatusOverlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#CC000000"
+        android:padding="10dp"
+        android:elevation="4dp">
 
-        <TextureView
-            android:id="@+id/cameraPreview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+        <View
+            android:id="@+id/signalColorBox"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/signal_box"/>
 
-        <com.example.mybasic.signalguard.OverlayView
-            android:id="@+id/overlayView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-
-        <!--
-          ╔══════════════════════════════════════╗
-          ║  TOP-LEFT: live signal status panel  ║
-          ║  Matches reference image 2 exactly   ║
-          ╚══════════════════════════════════════╝
-          Layout:
-            [ sq swatch ]  R:222 — STOP    ← signalNameText (bold, large)
-                           R:222 G:32 B:33 ← sampledColorText (monospace, smaller)
-        -->
         <LinearLayout
-            android:id="@+id/signalStatusOverlay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="top|start"
-            android:layout_margin="10dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="#CC000000"
-            android:padding="8dp">
+            android:orientation="vertical">
 
-            <!-- Colour square swatch — matches image 2 red square -->
-            <View
-                android:id="@+id/signalColorBox"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/signal_box"/>
-
-            <!-- Text column: signal name + RGB -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/signalNameText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:text="IDLE"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
 
-                <TextView
-                    android:id="@+id/signalNameText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="── IDLE ──"
-                    android:textColor="#E0E0FF"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.02"/>
-
-                <TextView
-                    android:id="@+id/sampledColorText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="R:--- G:--- B:---"
-                    android:textColor="#AAAACC"
-                    android:textSize="11sp"
-                    android:fontFamily="monospace"/>
-            </LinearLayout>
+            <TextView
+                android:id="@+id/sampledColorText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R:--- G:--- B:---"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"                android:fontFamily="monospace"/>
         </LinearLayout>
+    </LinearLayout>
 
-        <!-- TAP hint — shown when watching -->
-        <TextView
-            android:id="@+id/hintText"
+    <!-- Bottom Control Panel -->
+    <RelativeLayout
+        android:id="@+id/bottomControlPanel"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_gravity="bottom"
+        android:background="#CC0A0A14"
+        android:padding="8dp">
+
+        <!-- Left Side: D-Pad and Settings -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="top|end"
-            android:layout_margin="10dp"
-            android:text="TAP to lock"
-            android:textColor="#AAFFFFFF"
-            android:textSize="9sp"
-            android:background="#88000000"
-            android:padding="4dp"
-            android:visibility="invisible"/>
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:orientation="vertical"
+            android:gravity="bottom">
 
-        <!-- Watch indicator dot -->
-        <View
-            android:id="@+id/watchDot"
-            android:layout_width="9dp"
-            android:layout_height="9dp"
-            android:layout_gravity="top|start"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="66dp"
-            android:background="@drawable/dot_grey"
-            android:visibility="invisible"/>
-
-        <!--
-          ╔══════════════════════════════════════════════════════╗
-          ║  BOTTOM PANEL — floating over camera, ref image 1   ║
-          ╚══════════════════════════════════════════════════════╝
-          Left half  : large circular D-pad
-          Right half : START button (green pill)
-                       ZOOM bar
-                       zoom value text
-                       [FLIP] [SIL] row
-        -->
-        <LinearLayout
-            android:id="@+id/bottomControlPanel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="#CC0A0A14"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp">
-
-            <!-- LEFT: Circular D-pad (large, like ref image 1) -->
+            <!-- D-Pad -->
             <com.example.mybasic.signalguard.DPadView
                 android:id="@+id/dpadView"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
-                android:layout_marginEnd="12dp"/>
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginBottom="4dp"/>
 
-            <!-- RIGHT: buttons column -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <!-- START WATCHING — green pill, full width, tall -->
-                <Button
-                    android:id="@+id/btnStartStop"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginBottom="10dp"
-                    android:text="▶  START WATCHING"
-                    android:backgroundTint="#1B5E20"
-                    android:textColor="#55FF88"
-                    android:textStyle="bold"
-                    android:textSize="14sp"
-                    android:letterSpacing="0.04"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"/>
-
-                <!-- ZOOM bar -->
-                <com.example.mybasic.signalguard.ZoomDialView
-                    android:id="@+id/zoomDialView"
-                    android:layout_width="match_parent"
-                    android:layout_height="36dp"
-                    android:layout_marginBottom="4dp"/>
-
-                <!-- Zoom value row: min label + big current value -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="1.0×"
-                        android:textColor="#555577"
-                        android:textSize="10sp"
-                        android:layout_weight="0"/>
-
-                    <TextView
-                        android:id="@+id/zoomLabel"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="1.0×"
-                        android:textColor="#FFFFFF"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        android:gravity="center"/>
-
-                </LinearLayout>
-
-                <!-- FLIP + SILENCE row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btnFlipCamera"
-                        android:layout_width="0dp"
-                        android:layout_height="38dp"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="6dp"
-                        android:text="↩  FLIP"
-                        android:backgroundTint="#0D2744"
-                        android:textColor="#5599FF"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"/>
-
-                    <Button
-                        android:id="@+id/btnSilence"
-                        android:layout_width="0dp"
-                        android:layout_height="38dp"
-                        android:layout_weight="1"
-                        android:text="🔕  SIL"
-                        android:backgroundTint="#2A1010"
-                        android:textColor="#664444"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:enabled="false"/>
-
-                </LinearLayout>
-
-            </LinearLayout>
+            <!-- Settings Corner Button (Square) -->
+            <TextView
+                android:id="@+id/btnSettingsCorner"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:text="⚙"
+                android:textColor="#7777AA"
+                android:textSize="22sp"
+                android:gravity="center"
+                android:background="#222233"
+                android:layout_marginStart="4dp"/>
         </LinearLayout>
 
-    </FrameLayout>
+        <!-- Center: START Button, Signal Text, and RGB -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="8dp"
+            android:orientation="vertical"            android:gravity="center">
 
-    <!-- Watching status — slim strip below camera -->
+            <!-- START Button -->
+            <Button
+                android:id="@+id/btnStartStop"
+                android:layout_width="140dp"
+                android:layout_height="45dp"
+                android:text="▶ START"
+                android:backgroundTint="#1B5E20"
+                android:textColor="#55FF88"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Signal Name Display (RED/YELLOW/GREEN) - NOT A BUTTON -->
+            <TextView
+                android:id="@+id/signalAspectText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="IDLE"
+                android:textColor="#8888AA"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- RGB Values -->
+            <TextView
+                android:id="@+id/rgbValueText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R:--- G:--- B:---"
+                android:textColor="#AAAACC"
+                android:textSize="11sp"
+                android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <!-- Right Side: Vertical Zoom and Glass Orb -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:orientation="horizontal"
+            android:gravity="bottom|end">
+
+            <!-- Vertical Zoom Dial -->
+            <com.example.mybasic.signalguard.ZoomDialView
+                android:id="@+id/zoomDialView"
+                android:layout_width="40dp"
+                android:layout_height="140dp"                android:layout_marginEnd="8dp"/>
+
+            <!-- Glass Orb (Visual Indicator Light - NOT A BUTTON) -->
+            <View
+                android:id="@+id/glassOrb"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/glass_orb"
+                android:elevation="8dp"/>
+        </LinearLayout>
+
+        <!-- Zoom Label -->
+        <TextView
+            android:id="@+id/zoomLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_above="@id/glassOrb"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="8dp"
+            android:text="1.0x"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+    </RelativeLayout>
+
+    <!-- Status Bar -->
     <TextView
         android:id="@+id/watchingStatusText"
         android:layout_width="match_parent"
-        android:layout_height="22dp"
+        android:layout_height="24dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="205dp"
         android:text="Not watching — press START to arm alarm"
         android:textColor="#44445A"
-        android:textSize="9sp"
+        android:textSize="10sp"
         android:gravity="center"
-        android:background="#0E0E18"
-        android:letterSpacing="0.02"/>
+        android:background="#0E0E18"/>
 
-    <!-- Settings panel (hidden by default) -->
+    <!-- Settings Panel -->
     <LinearLayout
         android:id="@+id/settingsPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
         android:orientation="vertical"
         android:background="#0A0A14"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="10dp"
-        android:visibility="gone">
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#1A1A2A"
-            android:layout_marginBottom="8dp"/>
+        android:padding="16dp"        android:visibility="gone"
+        android:elevation="10dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="DISPLAY"
-            android:textColor="#33334A"
-            android:textSize="9sp"
+            android:text="DISPLAY SETTINGS"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
             android:textStyle="bold"
-            android:letterSpacing="0.15"
-            android:layout_marginBottom="6dp"/>
+            android:layout_marginBottom="8dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="2dp">
-
-            <LinearLayout
+            android:gravity="center_vertical">
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Keep screen on"
-                    android:textColor="#BBBBDD"
-                    android:textSize="12sp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Prevent screen timeout while app is open"
-                    android:textColor="#33334A"
-                    android:textSize="9sp"/>
-            </LinearLayout>
-
+                android:text="Keep screen on"
+                android:textColor="#BBBBDD"
+                android:textSize="12sp"/>
             <Switch
                 android:id="@+id/switchKeepScreenOn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:checked="true"
-                android:thumbTint="#00E676"
-                android:trackTint="#1A4A2A"/>
+                android:checked="true"/>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp">
-
-            <View
-                android:layout_width="2dp"
-                android:layout_height="22dp"
-                android:background="#1A1A2A"
-                android:layout_marginEnd="10dp"/>
-
-            <LinearLayout
+            android:gravity="center_vertical">
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Allow screen dimming"
-                    android:textColor="#9999BB"
-                    android:textSize="12sp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Screen can dim but will not turn off"
-                    android:textColor="#28283A"
-                    android:textSize="9sp"/>
-            </LinearLayout>
-
+                android:text="Allow dimming"
+                android:textColor="#9999BB"
+                android:textSize="12sp"/>
             <Switch
                 android:id="@+id/switchAllowDimming"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:checked="false"
-                android:thumbTint="#5599FF"
-                android:trackTint="#0D2040"/>
+                android:checked="false"/>
         </LinearLayout>
-
     </LinearLayout>
-
-    <!-- retained for code compatibility only -->
+    <!-- Hidden Views -->
     <TextView
         android:id="@+id/signalDescText"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone"/>
-
-    <!-- retained for code compatibility — hidden swatch, not shown in new UI -->
     <View
         android:id="@+id/sampledColorSwatch"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone"/>
 
-</LinearLayout>
+</FrameLayout>

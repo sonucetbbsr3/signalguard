@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -24,19 +25,13 @@ import java.lang.String;
 
 public final class ActivityMainBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final FrameLayout rootView;
 
   @NonNull
-  public final LinearLayout bottomControlPanel;
+  public final RelativeLayout bottomControlPanel;
 
   @NonNull
-  public final Button btnFlipCamera;
-
-  @NonNull
-  public final TextView btnSettings;
-
-  @NonNull
-  public final Button btnSilence;
+  public final TextView btnSettingsCorner;
 
   @NonNull
   public final Button btnStartStop;
@@ -48,13 +43,13 @@ public final class ActivityMainBinding implements ViewBinding {
   public final DPadView dpadView;
 
   @NonNull
-  public final TextView hintText;
+  public final View glassOrb;
 
   @NonNull
   public final OverlayView overlayView;
 
   @NonNull
-  public final FrameLayout previewFrame;
+  public final TextView rgbValueText;
 
   @NonNull
   public final View sampledColorSwatch;
@@ -67,6 +62,9 @@ public final class ActivityMainBinding implements ViewBinding {
 
   @NonNull
   public final LinearLayout settingsPanel;
+
+  @NonNull
+  public final TextView signalAspectText;
 
   @NonNull
   public final View signalColorBox;
@@ -90,9 +88,6 @@ public final class ActivityMainBinding implements ViewBinding {
   public final LinearLayout toolbar;
 
   @NonNull
-  public final View watchDot;
-
-  @NonNull
   public final TextView watchingStatusText;
 
   @NonNull
@@ -101,33 +96,32 @@ public final class ActivityMainBinding implements ViewBinding {
   @NonNull
   public final TextView zoomLabel;
 
-  private ActivityMainBinding(@NonNull LinearLayout rootView,
-      @NonNull LinearLayout bottomControlPanel, @NonNull Button btnFlipCamera,
-      @NonNull TextView btnSettings, @NonNull Button btnSilence, @NonNull Button btnStartStop,
-      @NonNull TextureView cameraPreview, @NonNull DPadView dpadView, @NonNull TextView hintText,
-      @NonNull OverlayView overlayView, @NonNull FrameLayout previewFrame,
+  private ActivityMainBinding(@NonNull FrameLayout rootView,
+      @NonNull RelativeLayout bottomControlPanel, @NonNull TextView btnSettingsCorner,
+      @NonNull Button btnStartStop, @NonNull TextureView cameraPreview, @NonNull DPadView dpadView,
+      @NonNull View glassOrb, @NonNull OverlayView overlayView, @NonNull TextView rgbValueText,
       @NonNull View sampledColorSwatch, @NonNull TextView sampledColorText,
       @NonNull TextView screenOnChip, @NonNull LinearLayout settingsPanel,
-      @NonNull View signalColorBox, @NonNull TextView signalDescText,
-      @NonNull TextView signalNameText, @NonNull LinearLayout signalStatusOverlay,
-      @NonNull Switch switchAllowDimming, @NonNull Switch switchKeepScreenOn,
-      @NonNull LinearLayout toolbar, @NonNull View watchDot, @NonNull TextView watchingStatusText,
-      @NonNull ZoomDialView zoomDialView, @NonNull TextView zoomLabel) {
+      @NonNull TextView signalAspectText, @NonNull View signalColorBox,
+      @NonNull TextView signalDescText, @NonNull TextView signalNameText,
+      @NonNull LinearLayout signalStatusOverlay, @NonNull Switch switchAllowDimming,
+      @NonNull Switch switchKeepScreenOn, @NonNull LinearLayout toolbar,
+      @NonNull TextView watchingStatusText, @NonNull ZoomDialView zoomDialView,
+      @NonNull TextView zoomLabel) {
     this.rootView = rootView;
     this.bottomControlPanel = bottomControlPanel;
-    this.btnFlipCamera = btnFlipCamera;
-    this.btnSettings = btnSettings;
-    this.btnSilence = btnSilence;
+    this.btnSettingsCorner = btnSettingsCorner;
     this.btnStartStop = btnStartStop;
     this.cameraPreview = cameraPreview;
     this.dpadView = dpadView;
-    this.hintText = hintText;
+    this.glassOrb = glassOrb;
     this.overlayView = overlayView;
-    this.previewFrame = previewFrame;
+    this.rgbValueText = rgbValueText;
     this.sampledColorSwatch = sampledColorSwatch;
     this.sampledColorText = sampledColorText;
     this.screenOnChip = screenOnChip;
     this.settingsPanel = settingsPanel;
+    this.signalAspectText = signalAspectText;
     this.signalColorBox = signalColorBox;
     this.signalDescText = signalDescText;
     this.signalNameText = signalNameText;
@@ -135,7 +129,6 @@ public final class ActivityMainBinding implements ViewBinding {
     this.switchAllowDimming = switchAllowDimming;
     this.switchKeepScreenOn = switchKeepScreenOn;
     this.toolbar = toolbar;
-    this.watchDot = watchDot;
     this.watchingStatusText = watchingStatusText;
     this.zoomDialView = zoomDialView;
     this.zoomLabel = zoomLabel;
@@ -143,7 +136,7 @@ public final class ActivityMainBinding implements ViewBinding {
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public FrameLayout getRoot() {
     return rootView;
   }
 
@@ -169,26 +162,14 @@ public final class ActivityMainBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.bottomControlPanel;
-      LinearLayout bottomControlPanel = ViewBindings.findChildViewById(rootView, id);
+      RelativeLayout bottomControlPanel = ViewBindings.findChildViewById(rootView, id);
       if (bottomControlPanel == null) {
         break missingId;
       }
 
-      id = R.id.btnFlipCamera;
-      Button btnFlipCamera = ViewBindings.findChildViewById(rootView, id);
-      if (btnFlipCamera == null) {
-        break missingId;
-      }
-
-      id = R.id.btnSettings;
-      TextView btnSettings = ViewBindings.findChildViewById(rootView, id);
-      if (btnSettings == null) {
-        break missingId;
-      }
-
-      id = R.id.btnSilence;
-      Button btnSilence = ViewBindings.findChildViewById(rootView, id);
-      if (btnSilence == null) {
+      id = R.id.btnSettingsCorner;
+      TextView btnSettingsCorner = ViewBindings.findChildViewById(rootView, id);
+      if (btnSettingsCorner == null) {
         break missingId;
       }
 
@@ -210,9 +191,9 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.hintText;
-      TextView hintText = ViewBindings.findChildViewById(rootView, id);
-      if (hintText == null) {
+      id = R.id.glassOrb;
+      View glassOrb = ViewBindings.findChildViewById(rootView, id);
+      if (glassOrb == null) {
         break missingId;
       }
 
@@ -222,9 +203,9 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.previewFrame;
-      FrameLayout previewFrame = ViewBindings.findChildViewById(rootView, id);
-      if (previewFrame == null) {
+      id = R.id.rgbValueText;
+      TextView rgbValueText = ViewBindings.findChildViewById(rootView, id);
+      if (rgbValueText == null) {
         break missingId;
       }
 
@@ -249,6 +230,12 @@ public final class ActivityMainBinding implements ViewBinding {
       id = R.id.settingsPanel;
       LinearLayout settingsPanel = ViewBindings.findChildViewById(rootView, id);
       if (settingsPanel == null) {
+        break missingId;
+      }
+
+      id = R.id.signalAspectText;
+      TextView signalAspectText = ViewBindings.findChildViewById(rootView, id);
+      if (signalAspectText == null) {
         break missingId;
       }
 
@@ -294,12 +281,6 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.watchDot;
-      View watchDot = ViewBindings.findChildViewById(rootView, id);
-      if (watchDot == null) {
-        break missingId;
-      }
-
       id = R.id.watchingStatusText;
       TextView watchingStatusText = ViewBindings.findChildViewById(rootView, id);
       if (watchingStatusText == null) {
@@ -318,11 +299,11 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMainBinding((LinearLayout) rootView, bottomControlPanel, btnFlipCamera,
-          btnSettings, btnSilence, btnStartStop, cameraPreview, dpadView, hintText, overlayView,
-          previewFrame, sampledColorSwatch, sampledColorText, screenOnChip, settingsPanel,
+      return new ActivityMainBinding((FrameLayout) rootView, bottomControlPanel, btnSettingsCorner,
+          btnStartStop, cameraPreview, dpadView, glassOrb, overlayView, rgbValueText,
+          sampledColorSwatch, sampledColorText, screenOnChip, settingsPanel, signalAspectText,
           signalColorBox, signalDescText, signalNameText, signalStatusOverlay, switchAllowDimming,
-          switchKeepScreenOn, toolbar, watchDot, watchingStatusText, zoomDialView, zoomLabel);
+          switchKeepScreenOn, toolbar, watchingStatusText, zoomDialView, zoomLabel);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

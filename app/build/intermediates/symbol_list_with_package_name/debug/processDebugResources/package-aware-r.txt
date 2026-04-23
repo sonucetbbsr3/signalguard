@@ -3560,6 +3560,7 @@ drawable design_password_eye
 drawable design_snackbar_background
 drawable dot_green
 drawable dot_grey
+drawable glass_orb
 drawable ic_arrow_back_black_24
 drawable ic_call_answer
 drawable ic_call_answer_low
@@ -3582,6 +3583,7 @@ drawable ic_mtrl_checked_circle
 drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
+drawable ic_my_icon
 drawable ic_search_black_24
 drawable m3_avd_hide_password
 drawable m3_avd_show_password
@@ -3766,9 +3768,7 @@ id bounce
 id bounceBoth
 id bounceEnd
 id bounceStart
-id btnFlipCamera
-id btnSettings
-id btnSilence
+id btnSettingsCorner
 id btnStartStop
 id buttonPanel
 id cache_measures
@@ -3877,6 +3877,7 @@ id frost
 id fullscreen_header
 id ghost_view
 id ghost_view_holder
+id glassOrb
 id gone
 id graph
 id graph_wrap
@@ -3887,7 +3888,6 @@ id header_title
 id hidden
 id hide_ime_id
 id hideable
-id hintText
 id home
 id homeAsUp
 id honorRequest
@@ -4038,7 +4038,6 @@ id pin
 id position
 id postLayout
 id pressed
-id previewFrame
 id progress_circular
 id progress_horizontal
 id radio
@@ -4047,6 +4046,7 @@ id rectangles
 id report_drawn
 id retreat
 id reverseSawtooth
+id rgbValueText
 id right
 id rightToLeft
 id right_icon
@@ -4086,6 +4086,7 @@ id shortcut
 id showCustom
 id showHome
 id showTitle
+id signalAspectText
 id signalColorBox
 id signalDescText
 id signalNameText
@@ -4194,7 +4195,6 @@ id view_tree_saved_state_registry_owner
 id view_tree_view_model_store_owner
 id visible
 id visible_removing_fragment_view_tag
-id watchDot
 id watchingStatusText
 id west
 id withText
@@ -4408,6 +4408,7 @@ layout select_dialog_singlechoice_material
 layout support_simple_spinner_dropdown_item
 mipmap ic_launcher
 mipmap ic_launcher_round
+mipmap ic_my_icon
 plurals mtrl_badge_content_description
 string abc_action_bar_home_description
 string abc_action_bar_up_description
